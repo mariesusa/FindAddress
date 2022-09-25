@@ -1,12 +1,68 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
 
 export default function App() {
+
+const [address, setAddress] = useState('');
+const [geolocation, setGeolocation] = useState('');
+
+const initial = {
+  latitude: 60.200692,
+  longitude: 24.934302,
+  latitudeDelta: 0.0322,
+  longitudeDelta: 0.0221
+};
+
+const findAddress = () => {
+  fetch(`http://www.mapquestapi.com/geocoding/v1/address?key=r0vb5J2B0gkhcNQ7YyQfNAk8fKMqFBsa&location=${address}`)
+  .then(response => response.json())
+  .then(responseJson => responseJson.results[0].locations[0].latLng)
+  console.log(responseJson)
+  setGeolocation({ latitude: `${responseJson.lat}`, longitude: `${responseJson.lng}` })
+  console.log(geolocation)
+
+  .catch(error => {
+    Alert.alert('Error', error);
+  });
+}
+
+const coordinates = {
+  latitude: 60.200692,
+  longitude: 24.934302,
+};
+
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+
+      <MapView
+        style={ styles.map }
+        region={ initial }
+        >
+
+      <Marker
+      followUserLocation={ true }
+        coordinate={ coordinates }
+        />
+      </MapView>
+      
+      <View>
+        <TextInput
+          style={ styles.input }
+          keyboardType='default'
+          onChangeText={ text => setAddress(text) }
+          value={ address }
+          />
+      </View>
+
+      <View style={ styles.button }>
+        <Button title='SHOW'
+          onPress={ findAddress } />
+      </View>
+      
     </View>
+
   );
 }
 
@@ -16,5 +72,37 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 200
   },
+  input : {
+    width: 200,
+    height: 40,
+    borderColor: 'black',
+    borderWidth: 1,
+    marginBottom: 3,
+    marginTop: 3,
+    alignItems: 'center',
+    justifyContent: 'space-around'
+  },
+button : {
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    backgroundColor: 'lightblue',
+    margin: 5,
+    borderColor: 'black',
+    borderWidth: 1,
+    width: '20%',
+    height: 40
+  },
+text : {
+  color: 'black',
+  fontSize: 20,
+  marginBottom: 4,
+  },
+  map: {
+    flex: 1,
+    width: '80%',
+    height: '95%'
+  }
 });
+
