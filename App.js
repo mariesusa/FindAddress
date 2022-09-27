@@ -1,12 +1,9 @@
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
-import { Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, Button, Keyboard, StyleSheet, Text, TextInput, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
 export default function App() {
-
-const [address, setAddress] = useState('');
-const [geolocation, setGeolocation] = useState('');
 
 const initial = {
   latitude: 60.200692,
@@ -15,35 +12,48 @@ const initial = {
   longitudeDelta: 0.0221
 };
 
+const [address, setAddress] = useState('');
+const [geolocation, setGeolocation] = useState(initial);
+
+/*
+Code I can't make work because data is undefined and I don't understand why
+
 const findAddress = () => {
   fetch(`http://www.mapquestapi.com/geocoding/v1/address?key=r0vb5J2B0gkhcNQ7YyQfNAk8fKMqFBsa&location=${address}`)
   .then(response => response.json())
-  .then(responseJson => responseJson.results[0].locations[0].latLng)
-  console.log(responseJson)
+  .then(json => json.results[0].locations[0].latLng)
+  console.log(data)
+
   setGeolocation({ latitude: `${responseJson.lat}`, longitude: `${responseJson.lng}` })
-  console.log(geolocation)
 
   .catch(error => {
     Alert.alert('Error', error);
   });
-}
+}*/
 
-const coordinates = {
-  latitude: 60.200692,
-  longitude: 24.934302,
-};
+const findAddress = async (address) => {
+  try {
+    const response = await fetch(`http://www.mapquestapi.com/geocoding/v1/address?key=r0vb5J2B0gkhcNQ7YyQfNAk8fKMqFBsa&location=${address}`);
+    const data = await response.json();
+
+    const { lat, lng } = data.results[0].locations[0].latLng;
+    setGeolocation({ ...geolocation, latitude: lat, longitude: lng })
+  } catch (error) {
+    Alert.alert('Error', error);
+  }
+  Keyboard.dismiss();
+}
 
   return (
     <View style={styles.container}>
 
       <MapView
         style={ styles.map }
-        region={ initial }
+        region={ geolocation }
         >
 
       <Marker
-      followUserLocation={ true }
-        coordinate={ coordinates }
+        coordinate={ geolocation }
         />
       </MapView>
       
@@ -58,7 +68,7 @@ const coordinates = {
 
       <View style={ styles.button }>
         <Button title='SHOW'
-          onPress={ findAddress } />
+          onPress={ () => findAddress(address) } />
       </View>
       
     </View>
@@ -72,7 +82,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 200
+    marginBottom: 10
   },
   input : {
     width: 200,
@@ -101,7 +111,7 @@ text : {
   },
   map: {
     flex: 1,
-    width: '80%',
+    width: '95%',
     height: '95%'
   }
 });
